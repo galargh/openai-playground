@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+messages=()
+for arg in "$@"; do
+  # do something on $arg
+  messages+=('{ "role": "user", "content": '"$(jq -R -s 'gsub("^\\s+|\\s+$"; "")' <<< "$arg")"' }')
+done
+chat-json "${messages[@]}"

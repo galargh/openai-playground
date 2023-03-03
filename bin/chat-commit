@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+diff="$(git diff HEAD)"
+chat "This is a git diff. Reply with a git commit command that uses a verbose, conventional commit message." "$diff"
