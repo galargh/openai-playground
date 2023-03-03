@@ -1,0 +1,43 @@
+#!/usr/bin/env zsh
+
+events="$(gh api -X GET /users/galargh/events --jq '
+  map(select(.public)) |
+  map(select(.created_at | startswith("2023-03-02"))) |
+  .[] |
+  .payload |= (to_entries |
+    map(
+      if (.value | type) == "object" then
+        .value |= (to_entries |
+          map(select(
+            (.value | type) != "object")
+          )
+        | from_entries)
+      else
+        .
+      end
+    )
+  | from_entries)
+' -f per_page=100 | jq -c)"
+
+number_of_events="$(jq -s 'length' <<< "$events")"
+number_of_characters="$(jq -R -s 'length' <<< "$events")"
+number_of_tokens=$((number_of_characters / 3.5))
+price=$((number_of_tokens * 0.000002))
+
+echo "Found $number_of_events events."
+echo "Their total length is $number_of_tokens tokens."
+echo "This will cost $price USD."
+echo "Continue? [y/N]"
+read -r answer
+if [[ "$answer" != "y" ]]; then
+  exit 0
+fi
+
+prompt="Write a concise, first person summary of the following events using a bullet list."
+while read event; do
+  summary="$(chat "This is an event describing my activity. Write a one sentence exhaustive summary of the event in first person." "$event")"
+  prompt="$prompt\n$summary"
+  echo "$summary"
+done <<< "$events"
+
+chat "$prompt"
