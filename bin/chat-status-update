@@ -2,7 +2,7 @@
 
 events="$(gh api -X GET /users/galargh/events --jq '
   map(select(.public)) |
-  map(select(.created_at | startswith("2023-03-02"))) |
+  map(select(.created_at | startswith("'"$(date +%Y-%m-%d)"'"))) |
   .[] |
   .payload |= (to_entries |
     map(
